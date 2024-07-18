@@ -10,8 +10,8 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 
-# 设置中文字体
-plt.rcParams['font.sans-serif'] = ['SimHei']
+# 设置字体
+plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 
 def get_market_trend_data(symbol, custom_date):
@@ -68,7 +68,6 @@ def create_k_line_chart(data, symbol, folder_path):
     data.columns = ['Open', 'High', 'Low', 'Close']
     fig, ax = plt.subplots(figsize=(10, 6))
     mpf.plot(data, type='candle', style='charles', ax=ax)
-    ax.set_title(f'{symbol} 当日K线图')
     plt.ylabel('')
     plt.xlabel('')
     plt.savefig(os.path.join(folder_path, 'k_line_chart.png'), dpi=300)
