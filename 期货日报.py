@@ -95,7 +95,7 @@ def create_k_line_chart(data, symbol, folder_path):
     data.columns = ['Open', 'High', 'Low', 'Close']
     fig, ax = plt.subplots(figsize=(10, 6))
     mpf.plot(data, type='candle', style='charles', ax=ax)
-    ax.set_ylabel('价格 (元/吨)')
+    ax.set_ylabel('')
     k_line_chart_path = os.path.join(folder_path, 'k_line_chart.png')
     plt.savefig(k_line_chart_path)
     plt.close(fig)
