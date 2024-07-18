@@ -16,13 +16,13 @@ rcParams['font.sans-serif'] = ['SimHei']
 rcParams['axes.unicode_minus'] = False
 
 # 创建文件夹和文档保存路径
-def create_folder_and_doc_path(custom_date):
+def create_folder_and_doc_path(custom_date, symbol):
     base_path = "C:/Users/jacky/Desktop/期货日报"
     folder_path = os.path.join(base_path, f"期货日报_{custom_date}")
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-    base_filename = "恒力期货日报"
-    filename = f"{base_filename}_{custom_date}.docx"
+    base_filename = f"{symbol}恒力期货日报_{custom_date}"
+    filename = f"{base_filename}.docx"
     doc_path = os.path.join(folder_path, filename)
     return doc_path, folder_path
 
@@ -101,12 +101,23 @@ def create_k_line_chart(data, symbol, folder_path):
     return k_line_chart_path
 
 # 获取新闻数据
-def get_news_data():
+def get_news_data(symbol, custom_date):
     try:
-        df = ak.futures_news_shmet(symbol="铜")
-        latest_news = df.tail(30)
+        news_mapping = {
+            'cu': '铜',
+            'al': '铝',
+            'pb': '铅',
+            'zn': '锌',
+            'ni': '镍',
+            'sn': '锡'
+        }
+        chinese_symbol = news_mapping.get(symbol, '铜')
+        df = ak.futures_news_shmet(symbol=chinese_symbol)
+        start_time = (custom_date - timedelta(days=1)).strftime('%Y-%m-%d') + ' 09:00:00'
+        df['发布时间'] = pd.to_datetime(df['发布时间'])
+        filtered_news = df[df['发布时间'] >= start_time]
         description = ""
-        for index, row in latest_news.iterrows():
+        for index, row in filtered_news.iterrows():
             description += f"{row['发布时间'].strftime('%Y-%m-%d %H:%M:%S')} - {row['内容']}\n"
         return description
     except Exception as e:
@@ -192,14 +203,14 @@ def fetch_and_plot_futures_data(commodity_name, output_filename):
 # 创建报告
 def create_report(custom_date_str, symbol, user_description, main_view):
     custom_date = datetime.strptime(custom_date_str, '%Y-%m-%d')
-    doc_path, folder_path = create_folder_and_doc_path(custom_date_str)
+    doc_path, folder_path = create_folder_and_doc_path(custom_date_str, symbol)
     market_trend_description, night_trend_description, market_data = get_market_trend_data(symbol=symbol, custom_date=custom_date)
     
     if market_data.empty:
         st.error("无法生成报告，因为市场数据为空。")
         return None
     
-    news_description = get_news_data()
+    news_description = get_news_data(symbol, custom_date)
     
     roll_yield_chart_path = os.path.join(folder_path, 'roll_yield_chart.png')
     fetch_and_plot_futures_data(symbol, roll_yield_chart_path)
@@ -210,7 +221,7 @@ def create_report(custom_date_str, symbol, user_description, main_view):
     set_doc_style(doc)
 
     # 添加标题
-    title = doc.add_paragraph("恒力期货日报")
+    title = doc.add_paragraph(f"{symbol}恒力期货日报 {custom_date_str}")
     title_run = title.runs[0]
     title_run.font.size = Pt(14)
     title_run.bold = True
@@ -259,11 +270,11 @@ def create_report(custom_date_str, symbol, user_description, main_view):
     return doc_path
 
 # Streamlit应用
-st.title("期货日报生成器")
-st.write("请选择日期和品种，输入主要观点和行情描述，然后点击生成日报")
+st.title("期货日报生成")
+st.write("created by 恒力期货上海分公司")
 
 custom_date = st.date_input("请选择日期")
-symbol = st.selectbox("请选择品种", ['cu', 'al', 'pb', 'zn', 'ni', 'sn'])
+symbol = st.selectbox("请选择品种", ['铜', '铝', '铅', '锌', '镍', '锡'])
 full_contract = st.text_input("请输入完整品种合约（如：CU2408）")
 
 if st.button("生成K线图"):
@@ -285,7 +296,7 @@ main_view = st.text_area("请输入主要观点")
 
 if st.button("生成日报"):
     custom_date_str = custom_date.strftime('%Y-%m-%d')
-    doc_path = create_report(custom_date_str, full_contract, user_description, main_view)
+    doc_path = create_report(custom_date_str, symbol, user_description, main_view)
     if doc_path:
         with open(doc_path, "rb") as f:
             st.download_button(
