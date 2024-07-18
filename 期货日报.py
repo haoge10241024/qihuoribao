@@ -252,6 +252,17 @@ st.write("请选择日期和品种，输入主要观点和行情描述，然后�
 
 custom_date = st.date_input("请选择日期")
 symbol = st.selectbox("请选择品种", ['cu', 'al', 'pb', 'zn', 'ni', 'sn'])
+
+if st.button("生成K线图"):
+    custom_date_str = custom_date.strftime('%Y-%m-%d')
+    day_description, night_description, market_data = get_market_trend_data(symbol, custom_date)
+    k_line_chart_path = create_k_line_chart(market_data, symbol, ".")
+
+    if k_line_chart_path:
+        st.image(k_line_chart_path, caption="前日K线图")
+    st.write(day_description)
+    st.write(night_description)
+
 user_description = st.text_area("请输入行情描述（自动生成或自行编辑）")
 main_view = st.text_area("请输入主要观点")
 
