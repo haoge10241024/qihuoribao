@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import mplfinance as mpf
 import streamlit as st
-import matplotlib.font_manager as fm
 
 # 设置字体为DejaVu Sans
 plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
@@ -46,6 +45,7 @@ def get_market_trend_data(symbol, custom_date):
         filtered_data = df[(df['datetime'] >= start_time) & (df['datetime'] <= end_time)]
         
         if filtered_data.empty:
+            print("市场数据为空")
             return "", "", pd.DataFrame()
 
         # 获取开盘价和收盘价
@@ -82,6 +82,7 @@ def get_market_trend_data(symbol, custom_date):
 
         return day_description, night_description, filtered_data
     except Exception as e:
+        print(f"获取市场走势数据失败: {e}")
         return f"获取市场走势数据失败: {e}", "", pd.DataFrame()
 
 # 创建K线图
@@ -94,7 +95,6 @@ def create_k_line_chart(data, symbol, folder_path):
     data.columns = ['Open', 'High', 'Low', 'Close']
     fig, ax = plt.subplots(figsize=(10, 6))
     mpf.plot(data, type='candle', style='charles', ax=ax)
-    ax.set_title(f'{symbol} 当日K线图')
     ax.set_ylabel('价格 (元/吨)')
     k_line_chart_path = os.path.join(folder_path, 'k_line_chart.png')
     plt.savefig(k_line_chart_path)
