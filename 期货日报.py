@@ -10,10 +10,11 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import mplfinance as mpf
 import streamlit as st
+import matplotlib.font_manager as fm
 
-# 使用系统字体 SimHei
-rcParams['font.sans-serif'] = ['SimHei']
-rcParams['axes.unicode_minus'] = False
+# 添加SimHei字体
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
 
 # 创建文件夹和文档保存路径
 def create_folder_and_doc_path(custom_date, symbol):
@@ -104,12 +105,12 @@ def create_k_line_chart(data, symbol, folder_path):
 def get_news_data(symbol, custom_date):
     try:
         news_mapping = {
-            'cu': '铜',
-            'al': '铝',
-            'pb': '铅',
-            'zn': '锌',
-            'ni': '镍',
-            'sn': '锡'
+            '铜': '铜',
+            '铝': '铝',
+            '铅': '铅',
+            '锌': '锌',
+            '镍': '镍',
+            '锡': '锡'
         }
         chinese_symbol = news_mapping.get(symbol, '铜')
         df = ak.futures_news_shmet(symbol=chinese_symbol)
