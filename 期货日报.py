@@ -122,7 +122,7 @@ def set_font_kaiti(paragraph):
     return run
 
 # 创建报告
-def create_report(custom_date_str, symbol, user_description, main_view):
+def create_report(custom_date_str, symbol, user_description, main_view, chinese_symbol):
     custom_date = datetime.strptime(custom_date_str, '%Y-%m-%d')
     doc_path, folder_path = create_folder_and_doc_path(custom_date_str)
     market_trend_description, night_trend_description, market_data = get_market_trend_data(symbol=symbol, custom_date=custom_date)
@@ -133,7 +133,7 @@ def create_report(custom_date_str, symbol, user_description, main_view):
     
     start_date = custom_date - timedelta(days=1)
     end_date = custom_date
-    news_description = get_news_data(start_date, end_date, symbol)
+    news_description = get_news_data(start_date, end_date, chinese_symbol)
     
     k_line_chart_path = create_k_line_chart(market_data, symbol, folder_path)
 
@@ -148,8 +148,7 @@ def create_report(custom_date_str, symbol, user_description, main_view):
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # 添加品种名
-    symbol_map = {'cu': '铜', 'al': '铝', 'pb': '铅', 'zn': '锌', 'ni': '镍', 'sn': '锡'}
-    doc.add_paragraph(symbol_map.get(symbol.lower(), symbol))
+    doc.add_paragraph(chinese_symbol)
 
     # 添加主要观点段落
     main_view_paragraph = doc.add_paragraph()
@@ -189,13 +188,24 @@ def create_report(custom_date_str, symbol, user_description, main_view):
     doc.save(doc_path)
     return doc_path
 
+# 映射品种代码到中文名称
+symbol_map = {
+    'cu': '铜',
+    'al': '铝',
+    'pb': '铅',
+    'zn': '锌',
+    'ni': '镍',
+    'sn': '锡'
+}
+
 # Streamlit应用
 st.title("期货日报生成器")
 st.write("created by 恒力期货上海分公司")
 st.write("请选择日期和品种，输入主要观点和行情描述，然后点击生成日报")
 
 custom_date = st.date_input("请选择日期")
-symbol = st.selectbox("请选择品种", ['cu', 'al', 'pb', 'zn', 'ni', 'sn'])
+symbol = st.selectbox("请选择品种", list(symbol_map.keys()))
+chinese_symbol = symbol_map[symbol]
 full_contract = st.text_input("请输入完整品种合约（如：CU2408）")
 
 if st.button("生成K线图"):
@@ -217,7 +227,7 @@ main_view = st.text_area("请输入主要观点")
 
 if st.button("生成日报"):
     custom_date_str = custom_date.strftime('%Y-%m-%d')
-    doc_path = create_report(custom_date_str, full_contract, user_description, main_view)
+    doc_path = create_report(custom_date_str, full_contract, user_description, main_view, chinese_symbol)
     if doc_path:
         with open(doc_path, "rb") as f:
             st.download_button(
