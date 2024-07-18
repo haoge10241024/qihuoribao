@@ -121,6 +121,74 @@ def set_font_kaiti(paragraph):
     run.font.size = Pt(12)
     return run
 
+# 获取合约期限结构数据并生成图表
+def fetch_and_plot_futures_data(commodity_name, output_filename):
+    continuous_contracts = [
+        "V0", "P0", "B0", "M0", "I0", "JD0", "L0", "PP0", "FB0", "BB0", "Y0",
+        "C0", "A0", "J0", "JM0", "CS0", "EG0", "RR0", "EB0", "PG0", "LH0",
+        "TA0", "OI0", "RS0", "RM0", "WH0", "JR0", "SR0", "CF0", "RI0", "MA0",
+        "FG0", "LR0", "SF0", "SM0", "CY0", "AP0", "CJ0", "UR0", "SA0", "PF0",
+        "PK0", "SH0", "PX0", "FU0", "SC0", "AL0", "RU0", "ZN0", "CU0", "AU0",
+        "RB0", "WR0", "PB0", "AG0", "BU0", "HC0", "SN0", "NI0", "SP0", "NR0",
+        "SS0", "LU0", "BC0", "AO0", "BR0", "EC0", "IF0", "TF0", "IH0", "IC0",
+        "TS0", "IM0", "SI0", "LC0"
+    ]
+
+    all_symbols = []
+
+    try:
+        futures_zh_realtime_df = ak.futures_zh_realtime(symbol=commodity_name)
+        symbols = futures_zh_realtime_df['symbol'].tolist()
+        all_symbols.extend([s for s in symbols if s not in continuous_contracts])
+    except Exception as e:
+        print(f"Error fetching realtime data for {commodity_name}: {e}")
+        return
+
+    all_symbols = sorted(set(all_symbols))
+
+    symbol_close_prices = {}
+
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=9)  # 获取数据的天数，改为9天
+
+    for symbol in all_symbols:
+        try:
+            futures_zh_daily_sina_df = ak.futures_zh_daily_sina(symbol=symbol)
+            futures_zh_daily_sina_df['date'] = pd.to_datetime(futures_zh_daily_sina_df['date'])
+            recent_days_df = futures_zh_daily_sina_df[(futures_zh_daily_sina_df['date'] >= start_date) & (futures_zh_daily_sina_df['date'] <= end_date)]
+            symbol_close_prices[symbol] = recent_days_df.set_index('date')['close']
+        except Exception as e:
+            print(f"Error fetching daily data for {symbol}: {e}")
+
+    all_data = pd.DataFrame(symbol_close_prices)
+
+    dates = all_data.index.unique()
+    num_dates = len(dates)
+    num_cols = 3
+    num_rows = (num_dates + num_cols - 1) // num_cols
+
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=(18, 6 * num_rows), sharex=False, sharey=False)
+    axes = axes.flatten()
+
+    for i, current_date in enumerate(dates):
+        ax = axes[i]
+        date_str = current_date.strftime('%Y-%m-%d')
+        prices_on_date = all_data.loc[current_date]
+        
+        ax.plot(prices_on_date.index, prices_on_date.values, marker='o')
+        ax.set_title(date_str)
+        ax.set_xticks(range(len(prices_on_date.index)))
+        ax.set_xticklabels(prices_on_date.index, rotation=45)
+        ax.set_ylabel('')
+        ax.set_xlabel('')
+
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    plt.tight_layout()
+    plt.savefig(output_filename, dpi=300)
+    plt.show()
+
 # 创建报告
 def create_report(custom_date_str, symbol, user_description, main_view):
     custom_date = datetime.strptime(custom_date_str, '%Y-%m-%d')
