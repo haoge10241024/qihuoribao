@@ -66,15 +66,18 @@ def get_market_trend_data(symbol, custom_date):
         night_start_time = today.strftime('%Y-%m-%d') + ' 21:00:00'
         night_end_time = (today + timedelta(days=1)).strftime('%Y-%m-%d') + ' 01:00:00'
         night_data = df[(df['datetime'] >= night_start_time) & (df['datetime'] <= night_end_time)]
-        night_open_price = night_data.iloc[0]['open']
-        night_close_price = night_data.iloc[-1]['close']
-        night_price_change = night_close_price - night_open_price
-        night_price_change_percentage = (night_price_change / night_open_price) * 100
-        night_trend = "上涨" if night_price_change > 0 else "下跌" if night_price_change < 0 else "持平"
-        night_description = (
-            f"夜盘走势：开盘价为{night_open_price}元/吨，收盘价为{night_close_price}元/吨，较开盘{night_trend}了"
-            f"{abs(night_price_change):.2f}元/吨，涨跌幅为{night_price_change_percentage:.2f}%。"
-        )
+        if night_data.empty:
+            night_description = "夜盘数据不可用。"
+        else:
+            night_open_price = night_data.iloc[0]['open']
+            night_close_price = night_data.iloc[-1]['close']
+            night_price_change = night_close_price - night_open_price
+            night_price_change_percentage = (night_price_change / night_open_price) * 100
+            night_trend = "上涨" if night_price_change > 0 else "下跌" if night_price_change < 0 else "持平"
+            night_description = (
+                f"夜盘走势：开盘价为{night_open_price}元/吨，收盘价为{night_close_price}元/吨，较开盘{night_trend}了"
+                f"{abs(night_price_change):.2f}元/吨，涨跌幅为{night_price_change_percentage:.2f}%。"
+            )
 
         return day_description, night_description, filtered_data
     except Exception as e:
