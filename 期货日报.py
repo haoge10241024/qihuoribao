@@ -196,11 +196,12 @@ st.write("请选择日期和品种，输入主要观点和行情描述，然后�
 
 custom_date = st.date_input("请选择日期")
 symbol = st.selectbox("请选择品种", ['cu', 'al', 'pb', 'zn', 'ni', 'sn'])
+full_contract = st.text_input("请输入完整品种合约（如：CU2408）")
 
 if st.button("生成K线图"):
     custom_date_str = custom_date.strftime('%Y-%m-%d')
-    day_description, night_description, market_data = get_market_trend_data(symbol, custom_date)
-    k_line_chart_path = create_k_line_chart(market_data, symbol, ".")
+    day_description, night_description, market_data = get_market_trend_data(full_contract, custom_date)
+    k_line_chart_path = create_k_line_chart(market_data, full_contract, ".")
 
     if k_line_chart_path:
         st.image(k_line_chart_path, caption="前日K线图")
@@ -216,7 +217,7 @@ main_view = st.text_area("请输入主要观点")
 
 if st.button("生成日报"):
     custom_date_str = custom_date.strftime('%Y-%m-%d')
-    doc_path = create_report(custom_date_str, symbol, user_description, main_view)
+    doc_path = create_report(custom_date_str, full_contract, user_description, main_view)
     if doc_path:
         with open(doc_path, "rb") as f:
             st.download_button(
