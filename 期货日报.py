@@ -93,8 +93,6 @@ def create_k_line_chart(data, symbol, folder_path):
     data.columns = ['Open', 'High', 'Low', 'Close']
     fig, ax = plt.subplots(figsize=(10, 6))
     mpf.plot(data, type='candle', style='charles', ax=ax)
-    ax.set_ylabel('')
-    ax.set_xlabel('')
     k_line_chart_path = os.path.join(folder_path, 'k_line_chart.png')
     plt.savefig(k_line_chart_path)
     plt.close(fig)
@@ -147,11 +145,23 @@ def create_report(custom_date_str, symbol, user_description, main_view):
     set_doc_style(doc)
 
     # 添加标题
-    title = doc.add_paragraph(f"{symbol}恒力期货日报{custom_date_str}")
+    title = doc.add_paragraph(f"恒力期货日报 {custom_date_str}")
     title_run = title.runs[0]
     title_run.font.size = Pt(14)
     title_run.bold = True
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    # 添加品种名
+    news_mapping = {
+        'cu': '铜',
+        'al': '铝',
+        'pb': '铅',
+        'zn': '锌',
+        'ni': '镍',
+        'sn': '锡'
+    }
+    chinese_symbol = news_mapping.get(symbol, '铜')
+    doc.add_paragraph(chinese_symbol).alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # 添加主要观点段落
     main_view_paragraph = doc.add_paragraph()
@@ -163,11 +173,11 @@ def create_report(custom_date_str, symbol, user_description, main_view):
     core_logic = doc.add_paragraph()
     core_logic_run = core_logic.add_run("核心逻辑：")
     core_logic_run.bold = True
-    core_logic.add_run("\n" + user_description)
+    core_logic.add_run("\n")
 
-    # 添加前日走势
+    # 添加昨日走势
     market_trend_paragraph = doc.add_paragraph()
-    market_trend_run = market_trend_paragraph.add_run("前日走势：")
+    market_trend_run = market_trend_paragraph.add_run("昨日走势：")
     market_trend_run.bold = True
     if k_line_chart_path:
         doc.add_picture(k_line_chart_path, width=Inches(6))
@@ -208,7 +218,7 @@ if st.button("生成K线图"):
     else:
         st.error("无法生成K线图，因为市场数据为空。")
     
-    st.write("前日走势：")
+    st.write("昨日走势：")
     st.write(day_description)
     st.write(night_description)
 
@@ -217,7 +227,7 @@ main_view = st.text_area("请输入主要观点")
 
 if st.button("生成日报"):
     custom_date_str = custom_date.strftime('%Y-%m-%d')
-    doc_path = create_report(custom_date_str, full_contract, user_description, main_view)
+    doc_path = create_report(custom_date_str, symbol, user_description, main_view)
     if doc_path:
         with open(doc_path, "rb") as f:
             st.download_button(
