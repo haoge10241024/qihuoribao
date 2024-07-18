@@ -11,7 +11,7 @@ from matplotlib import rcParams
 import mplfinance as mpf
 import streamlit as st
 
-# 使用系统字体 SimHei
+# 使用系统字体 DejaVu Sans
 rcParams['font.sans-serif'] = ['DejaVu Sans']
 rcParams['axes.unicode_minus'] = False
 
@@ -99,23 +99,14 @@ def create_k_line_chart(data, symbol, folder_path):
     return k_line_chart_path
 
 # 获取新闻数据
-def get_news_data(symbol, custom_date):
+def get_news_data(start_date, end_date, symbol):
     try:
-        news_mapping = {
-            'cu': '铜',
-            'al': '铝',
-            'pb': '铅',
-            'zn': '锌',
-            'ni': '镍',
-            'sn': '锡'
-        }
-        chinese_symbol = news_mapping.get(symbol, '铜')
-        df = ak.futures_news_shmet(symbol=chinese_symbol)
-        start_time = (custom_date - timedelta(days=1)).strftime('%Y-%m-%d') + ' 09:00:00'
+        df = ak.futures_news_shmet(symbol=symbol)
         df['发布时间'] = pd.to_datetime(df['发布时间'])
-        filtered_news = df[df['发布时间'] >= start_time]
+        filtered_news_df = df[(df['发布时间'] >= start_date) & (df['发布时间'] <= end_date)]
+        latest_news = filtered_news_df.tail(30)
         description = ""
-        for index, row in filtered_news.iterrows():
+        for index, row in latest_news.iterrows():
             description += f"{row['发布时间'].strftime('%Y-%m-%d %H:%M:%S')} - {row['内容']}\n"
         return description
     except Exception as e:
@@ -134,11 +125,16 @@ def set_font_kaiti(paragraph):
 def create_report(custom_date_str, symbol, user_description, main_view):
     custom_date = datetime.strptime(custom_date_str, '%Y-%m-%d')
     doc_path, folder_path = create_folder_and_doc_path(custom_date_str)
-    day_description, night_description, market_data = get_market_trend_data(symbol, custom_date)
+    market_trend_description, night_trend_description, market_data = get_market_trend_data(symbol=symbol, custom_date=custom_date)
+    
     if market_data.empty:
-        print("无法生成报告，因为市场数据为空。")
+        st.error("无法生成报告，因为市场数据为空。")
         return None
-    news_description = get_news_data(symbol, custom_date)
+    
+    start_date = custom_date - timedelta(days=1)
+    end_date = custom_date
+    news_description = get_news_data(start_date, end_date, symbol)
+    
     k_line_chart_path = create_k_line_chart(market_data, symbol, folder_path)
 
     doc = Document()
@@ -152,16 +148,8 @@ def create_report(custom_date_str, symbol, user_description, main_view):
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # 添加品种名
-    news_mapping = {
-        'cu': '铜',
-        'al': '铝',
-        'pb': '铅',
-        'zn': '锌',
-        'ni': '镍',
-        'sn': '锡'
-    }
-    chinese_symbol = news_mapping.get(symbol, '铜')
-    doc.add_paragraph(chinese_symbol).alignment = WD_ALIGN_PARAGRAPH.CENTER
+    symbol_map = {'cu': '铜', 'al': '铝', 'pb': '铅', 'zn': '锌', 'ni': '镍', 'sn': '锡'}
+    doc.add_paragraph(symbol_map.get(symbol.lower(), symbol))
 
     # 添加主要观点段落
     main_view_paragraph = doc.add_paragraph()
@@ -175,13 +163,14 @@ def create_report(custom_date_str, symbol, user_description, main_view):
     core_logic_run.bold = True
     core_logic.add_run("\n")
 
-    # 添加昨日走势
+    # 添加前日走势
     market_trend_paragraph = doc.add_paragraph()
     market_trend_run = market_trend_paragraph.add_run("昨日走势：")
     market_trend_run.bold = True
+
     if k_line_chart_path:
         doc.add_picture(k_line_chart_path, width=Inches(6))
-    market_trend_paragraph.add_run("\n" + day_description + "\n" + night_description)
+    market_trend_paragraph.add_run("\n" + user_description)
     set_font_kaiti(market_trend_paragraph)
 
     # 添加今日新闻资讯
@@ -203,6 +192,7 @@ def create_report(custom_date_str, symbol, user_description, main_view):
 # Streamlit应用
 st.title("期货日报生成器")
 st.write("created by 恒力期货上海分公司")
+st.write("请选择日期和品种，输入主要观点和行情描述，然后点击生成日报")
 
 custom_date = st.date_input("请选择日期")
 symbol = st.selectbox("请选择品种", ['cu', 'al', 'pb', 'zn', 'ni', 'sn'])
@@ -227,7 +217,7 @@ main_view = st.text_area("请输入主要观点")
 
 if st.button("生成日报"):
     custom_date_str = custom_date.strftime('%Y-%m-%d')
-    doc_path = create_report(custom_date_str, symbol, user_description, main_view)
+    doc_path = create_report(custom_date_str, full_contract, user_description, main_view)
     if doc_path:
         with open(doc_path, "rb") as f:
             st.download_button(
@@ -236,5 +226,3 @@ if st.button("生成日报"):
                 file_name=os.path.basename(doc_path),
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
-    else:
-        st.error("无法生成报告，因为市场数据为空。")
