@@ -12,8 +12,8 @@ import mplfinance as mpf
 import streamlit as st
 import matplotlib.font_manager as fm
 
-# 添加SimHei字体
-plt.rcParams['font.sans-serif'] = ['SimHei']
+# 设置字体为DejaVu Sans
+plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 
 # 创建文件夹和文档保存路径
