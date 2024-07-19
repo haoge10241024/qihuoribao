@@ -102,10 +102,9 @@ def create_k_line_chart(data, symbol, folder_path):
 def get_news_data(start_date, end_date, symbol):
     try:
         df = ak.futures_news_shmet(symbol=symbol)
-        df['发布时间'] = pd.to_datetime(df['发布时间'])
-        df['发布时间'] = df['发布时间'].dt.tz_localize('Asia/Shanghai')
-        start_date = pd.to_datetime(start_date).tz_localize('Asia/Shanghai')
-        end_date = pd.to_datetime(end_date).tz_localize('Asia/Shanghai')
+        df['发布时间'] = pd.to_datetime(df['发布时间']).dt.tz_convert('Asia/Shanghai')
+        start_date = pd.to_datetime(start_date).tz_convert('Asia/Shanghai')
+        end_date = pd.to_datetime(end_date).tz_convert('Asia/Shanghai')
         filtered_news_df = df[(df['发布时间'] >= start_date) & (df['发布时间'] <= end_date)]
         latest_news = filtered_news_df.tail(30)
         description = ""
