@@ -230,7 +230,7 @@ if st.button("生成K线图"):
     st.write(day_description)
     st.write(night_description)
 
-user_description = st.text_area("请输入行情描述（自动生成或自行编辑）")
+user_description = st.text_area("请输入行情描述（可自行编辑或采用上方自动生成的文案）")
 main_view = st.text_area("请输入主要观点")
 
 if st.button("生成日报"):
