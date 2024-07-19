@@ -167,6 +167,9 @@ def create_report(custom_date_str, symbol, user_description, main_view):
     
     commodity_paragraph = doc.add_paragraph(commodity_name)
     commodity_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    commodity_paragraph.bold = True
+    commodity_paragraph.font.size = Pt(14)
+
 
     # 添加主要观点段落
     main_view_paragraph = doc.add_paragraph()
