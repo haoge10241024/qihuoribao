@@ -101,8 +101,18 @@ def create_k_line_chart(data, symbol, folder_path):
 # 获取新闻数据
 def get_news_data(start_date, end_date, symbol):
     try:
-        df = ak.futures_news_shmet(symbol=symbol)
-        df['发布时间'] = pd.to_datetime(df['发布时间']).dt.tz_convert('Asia/Shanghai')
+        symbol_mapping = {
+            'cu': '铜',
+            'al': '铝',
+            'pb': '铅',
+            'zn': '锌',
+            'ni': '镍',
+            'sn': '锡'
+        }
+        symbol_name = symbol_mapping.get(symbol[:2], '未知品种')
+        
+        df = ak.futures_news_shmet(symbol=symbol_name)
+        df['发布时间'] = pd.to_datetime(df['发布时间']).dt.tz_localize('Asia/Shanghai')
         start_date = pd.to_datetime(start_date).tz_localize('Asia/Shanghai')
         end_date = pd.to_datetime(end_date + " 23:59:59").tz_localize('Asia/Shanghai')
         
