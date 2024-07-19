@@ -112,7 +112,7 @@ def get_news_data(symbol):
         symbol_name = symbol_mapping.get(symbol[:2], '未知品种')
         
         df = ak.futures_news_shmet(symbol=symbol_name)
-        df['发布时间'] = pd.to_datetime(df['发布时间']).dt.tz_localize('Asia/Shanghai')
+        df['发布时间'] = pd.to_datetime(df['发布时间']).dt.tz_convert('Asia/Shanghai')
         
         latest_news = df.tail(20)
         description = ""
