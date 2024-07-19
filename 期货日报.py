@@ -15,16 +15,6 @@ import streamlit as st
 rcParams['font.sans-serif'] = ['SimHei']
 rcParams['axes.unicode_minus'] = False
 
-# 创建文件夹和文档保存路径
-def create_folder_and_doc_path(custom_date):
-    base_path = "C:/Users/jacky/Desktop/期货日报"
-    folder_path = os.path.join(base_path, f"期货日报_{custom_date}")
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-    base_filename = "恒力期货日报"
-    filename = f"{base_filename}_{custom_date}.docx"
-    doc_path = os.path.join(folder_path, filename)
-    return doc_path, folder_path
 
 # 设置文档样式
 def set_doc_style(doc):
@@ -165,11 +155,10 @@ def create_report(custom_date_str, symbol, user_description, main_view):
         'sn': '锡'
     }.get(symbol[:2], '未知品种')
     
-    commodity_paragraph = doc.add_paragraph(commodity_name)
+    commodity_paragraph = doc.add_paragraph()
+    commodity_run = commodity_paragraph.add_run(commodity_name)
+    commodity_run.font.size = Pt(14)
     commodity_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    commodity_paragraph.bold = True
-    commodity_paragraph.font.size = Pt(14)
-
 
     # 添加主要观点段落
     main_view_paragraph = doc.add_paragraph()
