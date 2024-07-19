@@ -114,7 +114,7 @@ def get_news_data(start_date, end_date, symbol):
         df = ak.futures_news_shmet(symbol=symbol_name)
         df['发布时间'] = pd.to_datetime(df['发布时间']).dt.tz_localize('Asia/Shanghai')
         start_date = pd.to_datetime(start_date).tz_localize('Asia/Shanghai')
-        end_date = pd.to_datetime(end_date + " 23:59:59").tz_localize('Asia/Shanghai')
+        end_date = pd.to_datetime(end_date).tz_localize('Asia/Shanghai')
         
         filtered_news_df = df[(df['发布时间'] >= start_date) & (df['发布时间'] <= end_date)]
         latest_news = filtered_news_df.tail(30)
@@ -225,11 +225,11 @@ if st.button("生成K线图"):
     k_line_chart_path = create_k_line_chart(market_data, full_contract, ".")
 
     if k_line_chart_path:
-        st.image(k_line_chart_path, caption="前日K线图")
+        st.image(k_line_chart_path, caption="昨日K线图")
     else:
         st.error("无法生成K线图，因为市场数据为空。")
     
-    st.write("前日走势：")
+    st.write("昨日走势：")
     st.write(day_description)
     st.write(night_description)
 
