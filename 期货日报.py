@@ -99,7 +99,7 @@ def create_k_line_chart(data, symbol, folder_path):
     return k_line_chart_path
 
 # 获取新闻数据
-def get_news_data(start_date, end_date, symbol):
+def get_news_data(symbol):
     try:
         symbol_mapping = {
             'cu': '铜',
@@ -113,11 +113,8 @@ def get_news_data(start_date, end_date, symbol):
         
         df = ak.futures_news_shmet(symbol=symbol_name)
         df['发布时间'] = pd.to_datetime(df['发布时间']).dt.tz_localize('Asia/Shanghai')
-        start_date = pd.to_datetime(start_date).tz_localize('Asia/Shanghai')
-        end_date = pd.to_datetime(end_date).tz_localize('Asia/Shanghai')
         
-        filtered_news_df = df[(df['发布时间'] >= start_date) & (df['发布时间'] <= end_date)]
-        latest_news = filtered_news_df.tail(30)
+        latest_news = df.tail(20)
         description = ""
         for index, row in latest_news.iterrows():
             description += f"{row['发布时间'].strftime('%Y-%m-%d %H:%M:%S %Z')} - {row['内容']}\n"
@@ -144,9 +141,7 @@ def create_report(custom_date_str, symbol, user_description, main_view):
         st.error("无法生成报告，因为市场数据为空。")
         return None
     
-    start_date = (custom_date - timedelta(days=1)).strftime('%Y-%m-%d')
-    end_date = custom_date.strftime('%Y-%m-%d')
-    news_description = get_news_data(start_date, end_date, symbol)
+    news_description = get_news_data(symbol)
     
     k_line_chart_path = create_k_line_chart(market_data, symbol, folder_path)
 
