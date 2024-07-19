@@ -103,6 +103,9 @@ def get_news_data(start_date, end_date, symbol):
     try:
         df = ak.futures_news_shmet(symbol=symbol)
         df['发布时间'] = pd.to_datetime(df['发布时间'])
+        df['发布时间'] = df['发布时间'].dt.tz_localize('Asia/Shanghai')
+        start_date = pd.to_datetime(start_date).tz_localize('Asia/Shanghai')
+        end_date = pd.to_datetime(end_date).tz_localize('Asia/Shanghai')
         filtered_news_df = df[(df['发布时间'] >= start_date) & (df['发布时间'] <= end_date)]
         latest_news = filtered_news_df.tail(30)
         description = ""
@@ -162,7 +165,7 @@ def create_report(custom_date_str, symbol, user_description, main_view, chinese_
     core_logic_run.bold = True
     core_logic.add_run("\n")
 
-    # 添加前日走势
+    # 添加昨日走势
     market_trend_paragraph = doc.add_paragraph()
     market_trend_run = market_trend_paragraph.add_run("昨日走势：")
     market_trend_run.bold = True
