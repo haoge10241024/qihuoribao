@@ -15,6 +15,16 @@ import streamlit as st
 rcParams['font.sans-serif'] = ['SimHei']
 rcParams['axes.unicode_minus'] = False
 
+# 创建文件夹和文档保存路径
+def create_folder_and_doc_path(custom_date):
+    base_path = "C:/Users/jacky/Desktop/期货日报"
+    folder_path = os.path.join(base_path, f"期货日报_{custom_date}")
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    base_filename = "恒力期货日报"
+    filename = f"{base_filename}_{custom_date}.docx"
+    doc_path = os.path.join(folder_path, filename)
+    return doc_path, folder_path
 
 # 设置文档样式
 def set_doc_style(doc):
